@@ -13,6 +13,10 @@ pub mod types {
     pub type QuoteQuantity = Quantity;
 }
 
+pub mod error {
+    pub use rust_decimal::Error;
+}
+
 pub trait Ploy {
     fn trap(&self) -> Vec<position::Position>;
 }
