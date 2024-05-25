@@ -1,6 +1,7 @@
 mod time;
 
 pub mod math;
+pub mod plot;
 pub mod position;
 
 pub mod types {
