@@ -78,15 +78,15 @@ impl Position {
         if self.buying_prices.is_empty() {
             return false;
         }
-    
+
         for range in self.buying_prices.iter() {
             if range.is_within(value) {
                 return true;
             }
-    
+
             continue;
         }
-    
+
         false
     }
 
@@ -94,15 +94,15 @@ impl Position {
         if self.selling_prices.is_empty() {
             return false;
         }
-    
+
         for range in self.selling_prices.iter() {
             if range.is_within(value) {
                 return true;
             }
-    
+
             continue;
         }
-    
+
         false
     }
 }
