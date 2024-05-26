@@ -73,6 +73,38 @@ impl Position {
 
         min_sell_price
     }
+
+    pub fn is_within_buying_price(&self, value: &Price) -> bool {
+        if self.buying_prices.is_empty() {
+            return false;
+        }
+    
+        for range in self.buying_prices.iter() {
+            if range.is_within(value) {
+                return true;
+            }
+    
+            continue;
+        }
+    
+        false
+    }
+
+    pub fn is_within_selling_price(&self, value: &Price) -> bool {
+        if self.selling_prices.is_empty() {
+            return false;
+        }
+    
+        for range in self.selling_prices.iter() {
+            if range.is_within(value) {
+                return true;
+            }
+    
+            continue;
+        }
+    
+        false
+    }
 }
 
 // Buy:  base  -> quote

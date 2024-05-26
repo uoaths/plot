@@ -17,6 +17,7 @@ pub mod error {
     pub use rust_decimal::Error;
 }
 
+// Ploy trait
 pub trait Ploy {
     fn trap(&self) -> Vec<position::Position>;
 }
