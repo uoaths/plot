@@ -23,22 +23,6 @@ impl Range<Decimal> {
     }
 
     pub fn is_within(&self, value: &Decimal) -> bool {
-        self.min() < value && value < self.max()
+        self.min() <= value && value <= self.max()
     }
-}
-
-pub fn is_within_ranges(value: &Decimal, ranges: &Vec<Range<Decimal>>) -> bool {
-    if ranges.is_empty() {
-        return false;
-    }
-
-    for range in ranges.iter() {
-        if range.is_within(value) {
-            return true;
-        }
-
-        continue;
-    }
-
-    false
 }
