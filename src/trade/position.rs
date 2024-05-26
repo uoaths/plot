@@ -4,7 +4,7 @@ use std::error::Error;
 use crate::math::Range;
 use crate::types::{BaseQuantity, Price, QuoteQuantity};
 
-use super::{Trade, Trader};
+use super::{Tracker, Trade, Trader};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Position {
@@ -74,7 +74,7 @@ impl Position {
     }
 
     pub async fn min_profit_trades(
-        self,
+        &mut self,
         agent: &impl Trader,
     ) -> Result<Vec<Trade>, Box<dyn Error>> {
         let buying_price = self.max_buying_price();
@@ -82,39 +82,53 @@ impl Position {
 
         let prices = vec![*selling_price, *buying_price, *selling_price];
 
-        Ok(self.track(agent, &prices).await?)
+        let mut trades = Vec::new();
+        for price in prices.iter() {
+            trades.extend(self.trade(agent, &price).await?);
+        }
+
+        Ok(trades)
     }
 
-    async fn track(
-        mut self,
+    async fn trade(
+        &mut self,
         agent: &impl Trader,
-        prices: &Vec<Price>,
+        price: &Price,
     ) -> Result<Vec<Trade>, Box<dyn Error>> {
-        let mut trades = Vec::with_capacity(8);
+        let mut trades = Vec::with_capacity(2);
 
-        for price in prices.iter() {
-            if self.is_within_buying_price(price) {
-                if self.quote_quantity.is_zero() {
-                    continue;
-                }
+        if self.is_within_buying_price(price) && !self.quote_quantity.is_zero() {
+            trades = agent.buy(price, &self.quote_quantity).await?;
 
-                let trade = agent.buy(price, &self.quote_quantity).await?;
+            for trade in trades.iter() {
                 self.base_quantity += trade.base_quantity;
                 self.quote_quantity -= trade.quote_quantity;
-
-                trades.push(trade)
             }
+        }
 
-            if self.is_within_selling_price(price) {
-                if self.base_quantity.is_zero() {
-                    continue;
-                }
+        if self.is_within_selling_price(price) && !self.base_quantity.is_zero() {
+            trades = agent.sell(price, &self.base_quantity).await?;
 
-                let trade = agent.sell(price, &self.base_quantity).await?;
+            for trade in trades.iter() {
                 self.base_quantity -= trade.base_quantity;
                 self.quote_quantity += trade.quote_quantity;
+            }
+        }
 
-                trades.push(trade)
+        Ok(trades)
+    }
+}
+
+impl Tracker for Vec<Position> {
+    async fn track(
+        &mut self,
+        trader: &impl Trader,
+        prices: &Vec<Price>,
+    ) -> Result<Vec<Trade>, Box<dyn Error>> {
+        let mut trades = Vec::new();
+        for price in prices.iter() {
+            for position in self.iter_mut() {
+                trades.extend(position.trade(trader, price).await?);
             }
         }
 
@@ -158,15 +172,15 @@ mod tests_position {
             &self,
             price: &Price,
             quote_quantity: &QuoteQuantity,
-        ) -> Result<Trade, Box<dyn Error>> {
+        ) -> Result<Vec<Trade>, Box<dyn Error>> {
             if price > &Decimal::ZERO {
                 let base_quantity = (quote_quantity / price) * (Decimal::ONE - self.commission);
 
-                return Ok(Trade::with_buy_side(
+                return Ok(vec![Trade::with_buy_side(
                     price.clone(),
                     base_quantity,
                     quote_quantity.clone(),
-                ));
+                )]);
             };
 
             Err("Buy Trade Error")?
@@ -176,15 +190,15 @@ mod tests_position {
             &self,
             price: &Price,
             base_quantity: &BaseQuantity,
-        ) -> Result<Trade, Box<dyn Error>> {
+        ) -> Result<Vec<Trade>, Box<dyn Error>> {
             if price > &Decimal::ZERO {
                 let quote_quantity = (base_quantity * price) * (Decimal::ONE - self.commission);
 
-                return Ok(Trade::with_sell_side(
+                return Ok(vec![Trade::with_sell_side(
                     price.clone(),
                     base_quantity.clone(),
                     quote_quantity.clone(),
-                ));
+                )]);
             };
 
             Err("Sell Trade Error")?
@@ -229,7 +243,7 @@ mod tests_position {
 
     #[tokio::test]
     async fn test_min_profit_trades() {
-        let position = Position {
+        let mut position = Position {
             buying_prices: vec![Range(dec("30"), dec("80"))],
             selling_prices: vec![Range(dec("210"), dec("250"))],
             base_quantity: dec("5.0"),
@@ -252,7 +266,7 @@ mod tests_position {
 
     #[tokio::test]
     async fn test_min_profit_trades_with_mulit_prices() {
-        let position = Position {
+        let mut position = Position {
             buying_prices: vec![Range(dec("30"), dec("80")), Range(dec("90"), dec("100"))],
             selling_prices: vec![Range(dec("210"), dec("250")), Range(dec("205"), dec("200"))],
             base_quantity: dec("5.0"),

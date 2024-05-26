@@ -13,13 +13,21 @@ pub trait Trader {
         &self,
         price: &Price,
         quantity: &QuoteQuantity,
-    ) -> impl Future<Output = Result<Trade, Box<dyn Error>>> + Send;
+    ) -> impl Future<Output = Result<Vec<Trade>, Box<dyn Error>>> + Send;
 
     fn sell(
         &self,
         price: &Price,
         quantity: &BaseQuantity,
-    ) -> impl Future<Output = Result<Trade, Box<dyn Error>>> + Send;
+    ) -> impl Future<Output = Result<Vec<Trade>, Box<dyn Error>>> + Send;
+}
+
+pub trait Tracker {
+    fn track(
+        &mut self,
+        trader: &impl Trader,
+        prices: &Vec<Price>,
+    ) -> impl Future<Output = Result<Vec<Trade>, Box<dyn Error>>>;
 }
 
 // Buy:  base  -> quote
