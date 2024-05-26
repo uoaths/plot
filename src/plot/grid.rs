@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::math::Range;
-use crate::position::Position;
 use crate::types::{Decimal, Price, QuoteQuantity};
-use crate::Ploy;
+
+use super::{Plot, Position};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -22,7 +22,7 @@ impl Grid {
     }
 }
 
-impl Ploy for Grid {
+impl Plot for Grid {
     fn trap(&self) -> Vec<Position> {
         let mut result = Vec::with_capacity(self.copies);
         let copies = Decimal::from(self.copies);
