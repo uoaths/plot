@@ -176,7 +176,7 @@ mod tests_position {
             if price > &Decimal::ZERO {
                 let base_quantity = (quote_quantity / price) * (Decimal::ONE - self.commission);
 
-                return Ok(vec![Trade::with_buy_side(
+                return Ok(vec![Trade::with_buy(
                     price.clone(),
                     base_quantity,
                     quote_quantity.clone(),
@@ -194,7 +194,7 @@ mod tests_position {
             if price > &Decimal::ZERO {
                 let quote_quantity = (base_quantity * price) * (Decimal::ONE - self.commission);
 
-                return Ok(vec![Trade::with_sell_side(
+                return Ok(vec![Trade::with_sell(
                     price.clone(),
                     base_quantity.clone(),
                     quote_quantity.clone(),
@@ -225,8 +225,8 @@ mod tests_position {
         assert_eq!(
             trades,
             vec![
-                Trade::with_buy_side(dec("50"), dec("0.4"), dec("20.0")),
-                Trade::with_sell_side(dec("200"), dec("0.4"), dec("80.0"))
+                Trade::with_buy(dec("50"), dec("0.4"), dec("20.0")),
+                Trade::with_sell(dec("200"), dec("0.4"), dec("80.0"))
             ]
         );
 
@@ -235,8 +235,8 @@ mod tests_position {
         assert_eq!(
             trades,
             vec![
-                Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-                Trade::with_sell_side(dec("200"), dec("0.3996"), dec("79.8400800"))
+                Trade::with_buy(dec("50"), dec("0.3996"), dec("20.0")),
+                Trade::with_sell(dec("200"), dec("0.3996"), dec("79.8400800"))
             ]
         );
     }
@@ -257,9 +257,9 @@ mod tests_position {
         assert_eq!(
             trades,
             vec![
-                Trade::with_sell_side(dec("210"), dec("5"), dec("1050")),
-                Trade::with_buy_side(dec("80"), dec("13.375"), dec("1070")),
-                Trade::with_sell_side(dec("210"), dec("13.375"), dec("2808.75"))
+                Trade::with_sell(dec("210"), dec("5"), dec("1050")),
+                Trade::with_buy(dec("80"), dec("13.375"), dec("1070")),
+                Trade::with_sell(dec("210"), dec("13.375"), dec("2808.75"))
             ]
         );
     }
@@ -280,9 +280,9 @@ mod tests_position {
         assert_eq!(
             trades,
             vec![
-                Trade::with_sell_side(dec("200"), dec("5"), dec("1000")),
-                Trade::with_buy_side(dec("100"), dec("10.2"), dec("1020")),
-                Trade::with_sell_side(dec("200"), dec("10.2"), dec("2040"))
+                Trade::with_sell(dec("200"), dec("5"), dec("1000")),
+                Trade::with_buy(dec("100"), dec("10.2"), dec("1020")),
+                Trade::with_sell(dec("200"), dec("10.2"), dec("2040"))
             ]
         );
     }
