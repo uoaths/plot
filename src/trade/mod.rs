@@ -1,3 +1,4 @@
+pub mod evaluate;
 pub mod position;
 
 use std::error::Error;
@@ -58,7 +59,7 @@ impl Trade {
         }
     }
 
-    pub fn with_buy_side(
+    pub fn with_buy(
         price: Price,
         base_quantity: BaseQuantity,
         quote_quantity: QuoteQuantity,
@@ -72,7 +73,7 @@ impl Trade {
         )
     }
 
-    pub fn with_sell_side(
+    pub fn with_sell(
         price: Price,
         base_quantity: BaseQuantity,
         quote_quantity: QuoteQuantity,
@@ -86,24 +87,25 @@ impl Trade {
         )
     }
 
-    pub fn profit(value: &Vec<Self>) -> (BaseQuantity, QuoteQuantity) {
-        let mut base_quantity = BaseQuantity::ZERO;
-        let mut quote_quantity = QuoteQuantity::ZERO;
-
-        for trade in value.iter() {
-            match trade.side {
-                TradeSide::Buy => {
-                    base_quantity += trade.base_quantity;
-                    quote_quantity -= trade.quote_quantity;
+    pub fn costs(&self) -> QuoteQuantity {
+        match self.side {
+            TradeSide::Buy => {
+                let orgin_base = self.quote_quantity / self.price;
+                if self.base_quantity == orgin_base {
+                    QuoteQuantity::ZERO
+                } else {
+                    (orgin_base - self.base_quantity) * self.price
                 }
-                TradeSide::Sell => {
-                    base_quantity -= trade.base_quantity;
-                    quote_quantity += trade.quote_quantity;
+            }
+            TradeSide::Sell => {
+                let orgin_quote = self.base_quantity * self.price;
+                if self.quote_quantity == orgin_quote {
+                    QuoteQuantity::ZERO
+                } else {
+                    orgin_quote - self.quote_quantity
                 }
             }
         }
-
-        (base_quantity, quote_quantity)
     }
 }
 
@@ -114,60 +116,4 @@ pub enum TradeSide {
 
     #[serde(rename = "SELL")]
     Sell,
-}
-
-// ===== TESTS =====
-#[cfg(test)]
-mod tests_trade {
-    use crate::types::Decimal;
-
-    use super::Trade;
-
-    fn dec(value: &str) -> Decimal {
-        use std::str::FromStr;
-        Decimal::from_str(value).unwrap()
-    }
-
-    #[test]
-    fn test_profit() {
-        let trades = vec![
-            Trade::with_sell_side(dec("210"), dec("5"), dec("1050")),
-            Trade::with_buy_side(dec("80"), dec("13.375"), dec("1070")),
-            Trade::with_sell_side(dec("210"), dec("13.375"), dec("2808.75")),
-        ];
-
-        assert_eq!(Trade::profit(&trades), (dec("-5"), dec("2788.75")));
-
-        let trades = vec![
-            Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-            Trade::with_sell_side(dec("200"), dec("0.3996"), dec("79.8400800")),
-        ];
-
-        assert_eq!(Trade::profit(&trades), (dec("0"), dec("59.8400800")));
-
-        let trades = vec![
-            Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-            Trade::with_sell_side(dec("200"), dec("0.3996"), dec("79.8400800")),
-            Trade::with_buy_side(dec("50"), dec("9.99"), dec("500.0")),
-        ];
-
-        assert_eq!(Trade::profit(&trades), (dec("9.99"), dec("-440.1599200")));
-
-        let trades = vec![
-            Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-            Trade::with_sell_side(dec("200"), dec("0.3996"), dec("79.8400800")),
-            Trade::with_buy_side(dec("50"), dec("9.99"), dec("500.0")),
-            Trade::with_sell_side(dec("200"), dec("9.99"), dec("1996.002")),
-        ];
-
-        assert_eq!(Trade::profit(&trades), (dec("0"), dec("1555.8420800")));
-
-        let trades = vec![
-            Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-            Trade::with_sell_side(dec("200"), dec("0.3996"), dec("79.8400800")),
-            Trade::with_buy_side(dec("50"), dec("0.3996"), dec("20.0")),
-        ];
-
-        assert_eq!(Trade::profit(&trades), (dec("0.3996"), dec("39.8400800")));
-    }
 }
