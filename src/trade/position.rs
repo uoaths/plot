@@ -90,7 +90,7 @@ impl Position {
         Ok(trades)
     }
 
-    async fn trade(
+    pub async fn trade(
         &mut self,
         agent: &impl Trader,
         price: &Price,
