@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 use crate::types::{BaseQuantity, Price, QuoteQuantity};
 
 use super::{Trade, TradeSide};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Evaluate {
     pub volume_base_quantity: BaseQuantity,
     pub volume_quote_quantity: QuoteQuantity,
