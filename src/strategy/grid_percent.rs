@@ -42,7 +42,7 @@ impl Strategy for GridPercent {
         let mut positions = Vec::with_capacity(prices.len());
         let mut num = 0;
         for i in 0..prices.len() {
-            let index = i * num;
+            let index = i + num;
 
             let buy_0 = match prices.get(index) {
                 Some(v) => *v,
@@ -70,7 +70,7 @@ impl Strategy for GridPercent {
                 quote_quantity: self.investment.clone(),
             });
 
-            num += 4;
+            num += 3;
         }
 
         positions
@@ -105,6 +105,18 @@ mod tests {
                     selling_prices: vec![Range(dec("53.07600753005"), dec("60"))],
                     base_quantity: dec("0"),
                     quote_quantity: dec("100")
+                },
+                Position {
+                    buying_prices: vec![Range(dec("54.142835281403"), dec("54.684263634217"))],
+                    selling_prices: vec![Range(dec("55.231106270559"), dec("60"))],
+                    base_quantity: dec("0"),
+                    quote_quantity: dec("100")
+                },
+                Position {
+                    buying_prices: vec![Range(dec("56.341251506596"), dec("56.904664021661"))],
+                    selling_prices: vec![Range(dec("57.473710661877"), dec("60"))],
+                    base_quantity: dec("0"),
+                    quote_quantity: dec("100")
                 }
             ]
         );
@@ -124,6 +136,12 @@ mod tests {
                 Position {
                     buying_prices: vec![Range(dec("121.550625"), dec("127.62815625"))],
                     selling_prices: vec![Range(dec("134.0095640625"), dec("200"))],
+                    base_quantity: dec("0"),
+                    quote_quantity: dec("100")
+                },
+                Position {
+                    buying_prices: vec![Range(dec("147.745544378906"), dec("155.132821597851"))],
+                    selling_prices: vec![Range(dec("162.889462677743"), dec("200"))],
                     base_quantity: dec("0"),
                     quote_quantity: dec("100")
                 }
