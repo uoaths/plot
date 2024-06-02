@@ -1,7 +1,7 @@
 mod time;
 
 pub mod math;
-pub mod plot;
+pub mod strategy;
 pub mod trade;
 
 pub mod types {
@@ -18,6 +18,6 @@ pub mod error {
 }
 
 pub mod prelude {
-    pub use super::plot;
+    pub use super::strategy;
     pub use super::trade;
 }

@@ -23,11 +23,11 @@ pub trait Trader {
     ) -> impl Future<Output = Result<Vec<Trade>, Box<dyn Error>>> + Send;
 }
 
-pub trait Tracker {
-    fn track(
+pub trait Executor {
+    fn trap(
         &mut self,
-        trader: &impl Trader,
-        prices: &Vec<Price>,
+        agent: &impl Trader,
+        price: &Price,
     ) -> impl Future<Output = Result<Vec<Trade>, Box<dyn Error>>>;
 }
 

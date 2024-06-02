@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::math::Range;
 use crate::types::{Decimal, Price, QuoteQuantity};
 
-use super::{Plot, Position};
+use super::{Position, Strategy};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Grid {
@@ -22,8 +22,8 @@ impl Grid {
     }
 }
 
-impl Plot for Grid {
-    fn trap(&self) -> Vec<Position> {
+impl Strategy for Grid {
+    fn assign_position(&self) -> Vec<Position> {
         let mut result = Vec::with_capacity(self.copies);
         let copies = Decimal::from(self.copies);
         let price_highest = self.range.max();
@@ -73,7 +73,7 @@ mod tests_grid {
         };
 
         assert_eq!(
-            grid.trap(),
+            grid.assign_position(),
             vec![Position {
                 buying_prices: vec![Range(dec("50"), dec("62.5"))],
                 selling_prices: vec![Range(dec("87.5"), dec("100"))],
@@ -89,7 +89,7 @@ mod tests_grid {
         };
 
         assert_eq!(
-            grid.trap(),
+            grid.assign_position(),
             vec![
                 Position {
                     buying_prices: vec![Range(dec("50"), dec("58.333333"))],
@@ -113,7 +113,7 @@ mod tests_grid {
         };
 
         assert_eq!(
-            grid.trap(),
+            grid.assign_position(),
             vec![
                 Position {
                     buying_prices: vec![Range(dec("50"), dec("56.250000"))],

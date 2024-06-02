@@ -4,7 +4,7 @@ use std::error::Error;
 use crate::math::Range;
 use crate::types::{BaseQuantity, Price, QuoteQuantity};
 
-use super::{Tracker, Trade, Trader};
+use super::{Executor, Trade, Trader};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Position {
@@ -84,13 +84,15 @@ impl Position {
 
         let mut trades = Vec::new();
         for price in prices.iter() {
-            trades.extend(self.trade(agent, &price).await?);
+            trades.extend(self.trap(agent, &price).await?);
         }
 
         Ok(trades)
     }
+}
 
-    async fn trade(
+impl Executor for Position {
+    async fn trap(
         &mut self,
         agent: &impl Trader,
         price: &Price,
@@ -119,17 +121,16 @@ impl Position {
     }
 }
 
-impl Tracker for Vec<Position> {
-    async fn track(
+impl Executor for Vec<Position> {
+    async fn trap(
         &mut self,
-        trader: &impl Trader,
-        prices: &Vec<Price>,
+        agent: &impl Trader,
+        price: &Price,
     ) -> Result<Vec<Trade>, Box<dyn Error>> {
         let mut trades = Vec::new();
-        for price in prices.iter() {
-            for position in self.iter_mut() {
-                trades.extend(position.trade(trader, price).await?);
-            }
+
+        for position in self.iter_mut() {
+            trades.extend(position.trap(agent, price).await?);
         }
 
         Ok(trades)
