@@ -97,23 +97,23 @@ impl Executor for Position {
         agent: &impl Trader,
         price: &Price,
     ) -> Result<Vec<Trade>, Box<dyn Error>> {
-        let mut trades = Vec::with_capacity(2);
-
-        if self.is_within_buying_price(price) && !self.quote_quantity.is_zero() {
-            trades = agent.buy(price, &self.quote_quantity).await?;
-
-            for trade in trades.iter() {
-                self.base_quantity += trade.base_quantity;
-                self.quote_quantity -= trade.quote_quantity;
-            }
-        }
+        let mut trades = Vec::new();
 
         if self.is_within_selling_price(price) && !self.base_quantity.is_zero() {
-            trades = agent.sell(price, &self.base_quantity).await?;
+            trades.extend(agent.sell(price, &self.base_quantity).await?);
 
             for trade in trades.iter() {
                 self.base_quantity -= trade.base_quantity;
                 self.quote_quantity += trade.quote_quantity;
+            }
+        }
+
+        if self.is_within_buying_price(price) && !self.quote_quantity.is_zero() {
+            trades.extend(agent.buy(price, &self.quote_quantity).await?);
+
+            for trade in trades.iter() {
+                self.base_quantity += trade.base_quantity;
+                self.quote_quantity -= trade.quote_quantity;
             }
         }
 
@@ -142,7 +142,7 @@ mod tests_position {
     use std::error::Error;
 
     use crate::math::Range;
-    use crate::trade::Trader;
+    use crate::trade::{Executor, Trader};
     use crate::types::{BaseQuantity, Decimal, Price, QuoteQuantity};
 
     use super::Position;
@@ -295,5 +295,51 @@ mod tests_position {
                 && self.base_quantity == other.base_quantity
                 && self.quote_quantity == other.quote_quantity
         }
+    }
+
+    #[tokio::test]
+    async fn test_trap_same_price() {
+        let mut position = Position {
+            buying_prices: vec![Range(dec("30"), dec("80"))],
+            selling_prices: vec![Range(dec("70"), dec("80"))],
+            base_quantity: dec("5.0"),
+            quote_quantity: dec("20.0"),
+        };
+
+        let trades = position
+            .trap(&TradeAgent::with_commission("0"), &dec("80"))
+            .await
+            .unwrap();
+        assert_eq!(
+            trades,
+            vec![
+                Trade::with_sell(dec("80"), dec("5"), dec("400")),
+                Trade::with_buy(dec("80"), dec("5.250"), dec("420.0"))
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_trap() {
+        let mut position = Position {
+            buying_prices: vec![Range(dec("10"), dec("20"))],
+            selling_prices: vec![Range(dec("50"), dec("80"))],
+            base_quantity: dec("0"),
+            quote_quantity: dec("20.0"),
+        };
+
+        let trades = position
+            .trap(&TradeAgent::with_commission("0"), &dec("80"))
+            .await
+            .unwrap();
+        assert_eq!(trades, vec![]);
+
+        let trades = position
+            .trap(&TradeAgent::with_commission("0"), &dec("20"))
+            .await
+            .unwrap();
+        assert_eq!(trades, vec![
+            Trade::with_buy(dec("20"), dec("1"), dec("20"))
+        ]);
     }
 }
