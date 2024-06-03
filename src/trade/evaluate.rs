@@ -150,5 +150,25 @@ mod tests {
                 costs: dec("0.5999200")
             }
         );
+
+        let trades = vec![
+            Trade::with_buy(dec("507.545135202621"), dec("0.09841489"), dec("50")),
+            Trade::with_sell(dec("509.067770608228"), dec("0.098"), dec("49.8387528781")),
+        ];
+
+        assert_eq!(
+            trades.evaluate().await,
+            Evaluate {
+                volume_base_quantity: dec("0.19641489"),
+                volume_quote_quantity: dec("99.8387528781"),
+                leave_base_quantity: dec("0.00041489"),
+                leave_quote_quantity: dec("-0.1612471219"),
+                buy_count: 1,
+                sell_count: 1,
+                max_price: dec("509.067770608228"),
+                min_price: dec("507.545135202621"),
+                costs: dec("0.0998899905052705733099999825")
+            }
+        );
     }
 }
