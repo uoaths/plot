@@ -14,12 +14,17 @@ pub struct GridPercent {
 }
 
 impl GridPercent {
-    pub fn new(investment: QuoteQuantity, range: Range<Price>, percent: Decimal, percent_lost: Decimal) -> Self {
+    pub fn new(
+        investment: QuoteQuantity,
+        range: Range<Price>,
+        percent: Decimal,
+        percent_lost: Decimal,
+    ) -> Self {
         Self {
             investment,
             range,
             percent,
-            percent_lost
+            percent_lost,
         }
     }
 }
@@ -68,7 +73,10 @@ impl Strategy for GridPercent {
 
             let selling_prices = {
                 if Decimal::ZERO < percentage_lost && percentage_lost < Decimal::ONE {
-                    vec![Range(sell_0, termination_price.clone()), Range(Decimal::ZERO, sell_0 * percentage_lost)]
+                    vec![
+                        Range(sell_0, termination_price.clone()),
+                        Range(Decimal::ZERO, sell_0 * percentage_lost),
+                    ]
                 } else {
                     vec![Range(sell_0, termination_price.clone())]
                 }
@@ -99,7 +107,12 @@ mod tests {
 
     #[test]
     fn test_positions() {
-        let grid = GridPercent::new(dec("100"), Range(dec("50"), dec("60")), dec("0.01"), dec("0"));
+        let grid = GridPercent::new(
+            dec("100"),
+            Range(dec("50"), dec("60")),
+            dec("0.01"),
+            dec("0"),
+        );
         let positions = grid.assign_position();
 
         assert_eq!(
@@ -132,7 +145,12 @@ mod tests {
             ]
         );
 
-        let grid = GridPercent::new(dec("100"), Range(dec("100"), dec("200")), dec("0.05"), dec("0"));
+        let grid = GridPercent::new(
+            dec("100"),
+            Range(dec("100"), dec("200")),
+            dec("0.05"),
+            dec("0"),
+        );
         let positions = grid.assign_position();
 
         assert_eq!(
@@ -162,7 +180,12 @@ mod tests {
 
     #[test]
     fn test_positions_stop_lost() {
-        let grid = GridPercent::new(dec("100"), Range(dec("100"), dec("200")), dec("0.05"), dec("0.1"));
+        let grid = GridPercent::new(
+            dec("100"),
+            Range(dec("100"), dec("200")),
+            dec("0.05"),
+            dec("0.1"),
+        );
         let positions = grid.assign_position();
 
         assert_eq!(
@@ -170,19 +193,28 @@ mod tests {
             vec![
                 Position {
                     buying_prices: vec![Range(dec("100"), dec("105"))],
-                    selling_prices: vec![Range(dec("110.25"), dec("200")), Range(dec("0"), dec("99.225"))],
+                    selling_prices: vec![
+                        Range(dec("110.25"), dec("200")),
+                        Range(dec("0"), dec("99.225"))
+                    ],
                     base_quantity: dec("0"),
                     quote_quantity: dec("100")
                 },
                 Position {
                     buying_prices: vec![Range(dec("121.550625"), dec("127.62815625"))],
-                    selling_prices: vec![Range(dec("134.0095640625"), dec("200")), Range(dec("0"), dec("120.60860765625"))],
+                    selling_prices: vec![
+                        Range(dec("134.0095640625"), dec("200")),
+                        Range(dec("0"), dec("120.60860765625"))
+                    ],
                     base_quantity: dec("0"),
                     quote_quantity: dec("100")
                 },
                 Position {
                     buying_prices: vec![Range(dec("147.745544378906"), dec("155.132821597851"))],
-                    selling_prices: vec![Range(dec("162.889462677743"), dec("200")), Range(dec("0"), dec("146.6005164099687"))],
+                    selling_prices: vec![
+                        Range(dec("162.889462677743"), dec("200")),
+                        Range(dec("0"), dec("146.6005164099687"))
+                    ],
                     base_quantity: dec("0"),
                     quote_quantity: dec("100")
                 }
